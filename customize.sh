@@ -6,18 +6,18 @@ sed -i 's/192.168.1.1/192.168.1.1/g' openwrt/package/base-files/files/bin/config
 # 2. Clear default password
 sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' openwrt/package/lean/default-settings/files/zzz-default-settings
 
-# 3. Rename Hostname
-sed -i 's/OpenWrt/R2S-AutoExpand/g' openwrt/package/base-files/files/bin/config_generate
+# 3. Set Hostname
+sed -i 's/OpenWrt/R2S-OpenClash/g' openwrt/package/base-files/files/bin/config_generate
 
-# 4. Auto-Expand Partition Script
-# The backslash before EOF ensures the content is written exactly as-is.
+# 4. Write Auto-Expand script for first boot
+# Using \EOF is the verified fix for your previous syntax failure
 cat <<\EOF >> openwrt/package/lean/default-settings/files/zzz-default-settings
 if [ -b /dev/mmcblk0 ]; then
-    # Resize partition 2 to take up the full SD card
+    # Expand the second partition to 100% of the SD card
     parted -s /dev/mmcblk0 resizepart 2 100%
-    # Tell the kernel the partition table changed
+    # Refresh partition table
     partprobe /dev/mmcblk0
-    # Expand the actual data structures (Ext4)
+    # Expand the filesystem to fill the new space
     resize2fs /dev/mmcblk0p2
 fi
 EOF
